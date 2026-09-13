@@ -1,0 +1,328 @@
+#!/usr/bin/env python3
+"""
+================================================================================
+CRYSTAL PRISM — SCRIPT 1: THE FCC LATTICE POINT GENERATION
+================================================================================
+
+The substrate of the theory. Before any physical constant, any particle, any
+galaxy, we must define the geometric object that everything else is built on.
+
+The vacuum is a face-centered cubic (FCC) lattice.
+
+This script generates the FCC lattice points in a supercell, verifies the
+count against the closed-form expectation, and prints every number needed by
+downstream scripts.
+
+WHAT THIS SCRIPT DOES
+---------------------
+  1. Defines the FCC lattice in the checkerboard convention.
+  2. Generates all FCC points in a supercell of half-width n.
+  3. Verifies the count against the closed-form expectation (2n+1)³/2.
+  4. Exports the point coordinates and the count.
+
+WHAT THIS SCRIPT VERIFIES
+-------------------------
+  - Point count matches the closed-form (2n+1)³/2.
+  - All generated points satisfy x + y + z even (checkerboard condition).
+  - All generated points are unique.
+  - The origin is included.
+
+This is the smallest possible unit of the theory. Every downstream script
+will regenerate the FCC points it needs, in its own file, using the same
+checkerboard definition.
+
+================================================================================
+"""
+
+import math
+from itertools import product
+from datetime import datetime
+
+
+# ============================================================================
+# INPUTS
+# ============================================================================
+# The only input this script needs is the supercell half-width n.
+# Everything else is derived.
+
+N_SUPERCELL = 3   # int — half-width of the cubic supercell
+
+
+# ============================================================================
+# HEADER
+# ============================================================================
+
+print("=" * 78)
+print("CRYSTAL PRISM — SCRIPT 1: FCC LATTICE POINT GENERATION")
+print("=" * 78)
+print(f"Executed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+print()
+
+print("-" * 78)
+print("INPUT")
+print("-" * 78)
+print()
+print(f"  Supercell half-width n = {N_SUPERCELL}")
+print(f"  Supercell side (in units of a) = {2 * N_SUPERCELL + 1}")
+print()
+
+
+# ============================================================================
+# THE FCC LATTICE — DEFINITION
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 1 — FCC LATTICE DEFINITION")
+print("-" * 78)
+print()
+
+print("  The FCC lattice in the checkerboard convention consists of all")
+print("  integer points (x, y, z) in units of the half-lattice-constant a/2")
+print("  satisfying the parity condition:")
+print()
+print("        x + y + z  is even")
+print()
+print("  This is the standard geometric description: FCC = SC + face centers.")
+print("  In a cubic supercell of side 2n+1 (in units of a), half the points")
+print("  satisfy the parity condition.")
+print()
+
+print("  Example points:")
+print("    (0, 0, 0)   ← origin")
+print("    (1, 1, 0)   ← face center of the (1,0,0) cube")
+print("    (1, 0, 1)   ← another face center")
+print("    (0, 1, 1)   ← another face center")
+print("    (1, -1, 0)  ← another face center")
+print()
+
+
+# ============================================================================
+# SECTION 2 — GENERATE FCC POINTS
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 2 — GENERATE FCC POINTS")
+print("-" * 78)
+print()
+
+def generate_fcc_points(n_range):
+    """
+    Generate all FCC lattice points in a cubic supercell.
+
+    Parameters
+    ----------
+    n_range : int
+        Half-width of the supercell (in units of a/2).
+
+    Returns
+    -------
+    list of tuple
+        Integer triples (x, y, z) with x + y + z even.
+    """
+    pts = []
+    for x, y, z in product(range(-n_range, n_range + 1), repeat=3):
+        if (x + y + z) % 2 == 0:
+            pts.append((x, y, z))
+    return pts
+
+print("  Generating points...")
+print(f"  Loop over x, y, z from -{N_SUPERCELL} to +{N_SUPERCELL}...")
+print()
+
+fcc_points = generate_fcc_points(N_SUPERCELL)
+n_points = len(fcc_points)
+
+print(f"  Total points generated: {n_points}")
+print()
+
+
+# ============================================================================
+# SECTION 3 — CLOSED-FORM EXPECTATION
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 3 — CLOSED-FORM EXPECTATION")
+print("-" * 78)
+print()
+
+total_cells = (2 * N_SUPERCELL + 1) ** 3
+expected_n_points = total_cells // 2
+
+print(f"  Total integer points in supercell:  (2n+1)³ = {total_cells}")
+print(f"  Half satisfy x+y+z even (FCC):      {expected_n_points}")
+print()
+
+print(f"  Computed:  {n_points}")
+print(f"  Expected:  {expected_n_points}")
+print()
+
+if n_points == expected_n_points:
+    print("  ✓ PASS — FCC point count matches closed-form.")
+else:
+    print("  ✗ FAIL — mismatch between computed and expected count.")
+    raise SystemExit(1)
+print()
+
+
+# ============================================================================
+# SECTION 4 — VERIFY PARITY CONDITION
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 4 — VERIFY PARITY CONDITION")
+print("-" * 78)
+print()
+
+# Every point must satisfy x + y + z even.
+
+violations = [p for p in fcc_points if sum(p) % 2 != 0]
+
+print(f"  Points violating x + y + z even:  {len(violations)}")
+print()
+
+if len(violations) == 0:
+    print("  ✓ PASS — all points satisfy the parity condition.")
+else:
+    print("  ✗ FAIL — some points violate the parity condition.")
+    print(f"  First violation: {violations[0]}")
+    raise SystemExit(1)
+print()
+
+
+# ============================================================================
+# SECTION 5 — VERIFY UNIQUENESS
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 5 — VERIFY UNIQUENESS")
+print("-" * 78)
+print()
+
+unique_points = set(fcc_points)
+n_unique = len(unique_points)
+
+print(f"  Points generated:      {n_points}")
+print(f"  Unique points:         {n_unique}")
+print()
+
+if n_unique == n_points:
+    print("  ✓ PASS — all points are unique (no duplicates).")
+else:
+    print(f"  ✗ FAIL — {n_points - n_unique} duplicate(s) detected.")
+    raise SystemExit(1)
+print()
+
+
+# ============================================================================
+# SECTION 6 — VERIFY ORIGIN IS INCLUDED
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 6 — VERIFY ORIGIN IS INCLUDED")
+print("-" * 78)
+print()
+
+origin = (0, 0, 0)
+
+if origin in unique_points:
+    print(f"  ✓ PASS — origin {origin} is in the point set.")
+else:
+    print(f"  ✗ FAIL — origin {origin} is not in the point set.")
+    raise SystemExit(1)
+print()
+
+
+# ============================================================================
+# SECTION 7 — SAMPLE OF POINTS
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 7 — SAMPLE OF POINTS")
+print("-" * 78)
+print()
+
+print(f"  First 12 points (as generated):")
+for i, p in enumerate(fcc_points[:12]):
+    print(f"    [{i:2d}]  ({p[0]:+2d}, {p[1]:+2d}, {p[2]:+2d})")
+print()
+
+print(f"  Last 6 points (as generated):")
+for i, p in enumerate(fcc_points[-6:]):
+    idx = n_points - 6 + i
+    print(f"    [{idx:2d}]  ({p[0]:+2d}, {p[1]:+2d}, {p[2]:+2d})")
+print()
+
+
+# ============================================================================
+# SECTION 8 — PHYSICAL DISTANCES (IN UNITS OF LATTICE CONSTANT a)
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 8 — PHYSICAL DISTANCES IN UNITS OF LATTICE CONSTANT a")
+print("-" * 78)
+print()
+
+print("  The checkerboard convention has point coordinates in units of a/2.")
+print("  Therefore the distance between two points in units of a is:")
+print()
+print("      r(a) = sqrt(dx² + dy² + dz²) / 2")
+print()
+
+def distance_in_a(p1, p2):
+    """Distance between two FCC points in units of the lattice constant a."""
+    return math.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2))) / 2.0
+
+# Sample distances from origin
+print("  Distance from origin to a few sample points (in units of a):")
+print()
+print(f"  {'point':<20} {'d (in units of a)':<20}")
+print(f"  {'-'*20} {'-'*20}")
+
+sample_points = [(1, 1, 0), (1, 0, 1), (0, 1, 1), (2, 0, 0), (2, 2, 0), (1, 1, 2)]
+
+for p in sample_points:
+    d = distance_in_a(origin, p)
+    print(f"  ({p[0]:+2d}, {p[1]:+2d}, {p[2]:+2d})            {d:.15f}")
+
+print()
+
+
+# ============================================================================
+# SECTION 9 — EXPORT SUMMARY
+# ============================================================================
+
+print("-" * 78)
+print("SECTION 9 — EXPORT SUMMARY")
+print("-" * 78)
+print()
+
+print(f"  N_SUPERCELL      = {N_SUPERCELL}")
+print(f"  SUPERCELL_SIDE   = {2 * N_SUPERCELL + 1}")
+print(f"  N_FCC_POINTS     = {n_points}")
+print()
+
+print("  These values are exported to downstream scripts.")
+print("  Downstream scripts will regenerate the same FCC points using the")
+print("  same checkerboard definition.")
+print()
+
+
+# ============================================================================
+# STATUS
+# ============================================================================
+
+print("=" * 78)
+print("SCRIPT 1 — STATUS")
+print("=" * 78)
+print()
+print("  ✓ FCC points generated in supercell.")
+print("  ✓ Point count matches closed-form (2n+1)³/2.")
+print("  ✓ All points satisfy parity condition x + y + z even.")
+print("  ✓ All points are unique.")
+print("  ✓ Origin is included.")
+print()
+print("  STATUS: PASS — proceed to Script 2 (neighbor shells).")
+print()
+print("=" * 78)
+print("END OF SCRIPT 1")
+print("=" * 78)
